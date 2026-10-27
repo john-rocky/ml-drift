@@ -234,7 +234,14 @@ absl::Status MakeQuantizedFullyConnectedExternalWeights(
   ABSL_ASSIGN_OR_RETURN(auto src, model_builder->GetTensor(inputs[0]));
   ABSL_ASSIGN_OR_RETURN(auto weights, model_builder->GetTensor(inputs[1]));
   ABSL_ASSIGN_OR_RETURN(auto scale, model_builder->GetTensor(inputs[2]));
-  ABSL_ASSIGN_OR_RETURN(auto zero_point, model_builder->GetTensor(inputs[3]));
+  // Without a bias the zero point is optional: src, weights, scale and, unless
+  // every zero point is 0, zero_point.
+  GpuModelBuilder::TensorHandle zero_point;
+  GpuModelBuilder::TensorHandle* zero_point_ptr = nullptr;
+  if (inputs.size() > 3) {
+    ABSL_ASSIGN_OR_RETURN(zero_point, model_builder->GetTensor(inputs[3]));
+    zero_point_ptr = &zero_point;
+  }
 
   GpuModelBuilder::TensorHandle weights_sum_i;
   GpuModelBuilder::TensorHandle* weights_sum_i_ptr = nullptr;
@@ -274,7 +281,7 @@ absl::Status MakeQuantizedFullyConnectedExternalWeights(
           create_info.hints.Check(ModelHints::kPreferTextureWeights));
       const GpuModelBuilder::Weights external_weights = CreateExternalWeights(
           weights, weights_desc, weights_shape_ohwi, scale_zp_shape, &scale,
-          &zero_point, weights_sum_i_ptr);
+          zero_point_ptr, weights_sum_i_ptr);
       out = model_builder->FullyConnectedInt8ExternalWeights(
           src, external_weights, bias_th_ptr);
       break;
@@ -286,7 +293,7 @@ absl::Status MakeQuantizedFullyConnectedExternalWeights(
           create_info.hints.Check(ModelHints::kPreferTextureWeights));
       const GpuModelBuilder::Weights external_weights = CreateExternalWeights(
           weights, weights_desc, weights_shape_ohwi, scale_zp_shape, &scale,
-          &zero_point, weights_sum_i_ptr);
+          zero_point_ptr, weights_sum_i_ptr);
       out = model_builder->FullyConnectedInt4ExternalWeights(
           src, external_weights, bias_th_ptr);
       break;
@@ -298,7 +305,7 @@ absl::Status MakeQuantizedFullyConnectedExternalWeights(
           create_info.hints.Check(ModelHints::kPreferTextureWeights));
       const GpuModelBuilder::Weights external_weights = CreateExternalWeights(
           weights, weights_desc, weights_shape_ohwi, scale_zp_shape, &scale,
-          &zero_point, weights_sum_i_ptr);
+          zero_point_ptr, weights_sum_i_ptr);
       out = model_builder->FullyConnectedInt2ExternalWeights(
           src, external_weights, bias_th_ptr);
       break;
@@ -883,7 +890,7 @@ absl::Status GPUOperationFromNode(const GpuInfo& gpu_info,
     case OperationType::kFullyConnectedInt2: {
       const auto& attr = std::any_cast<const FullyConnectedInt2Attributes&>(
           node.operation.attributes);
-      if (inputs.size() >= 4) {
+      if (inputs.size() >= 3) {
         return MakeQuantizedFullyConnectedExternalWeights(
             gpu_info, create_info, op_def, OperationType::kFullyConnectedInt2,
             src_ids, dst_ids, model_builder,
@@ -897,7 +904,7 @@ absl::Status GPUOperationFromNode(const GpuInfo& gpu_info,
     case OperationType::kFullyConnectedInt4: {
       const auto& attr = std::any_cast<const FullyConnectedInt4Attributes&>(
           node.operation.attributes);
-      if (inputs.size() >= 4) {
+      if (inputs.size() >= 3) {
         return MakeQuantizedFullyConnectedExternalWeights(
             gpu_info, create_info, op_def, OperationType::kFullyConnectedInt4,
             src_ids, dst_ids, model_builder,
@@ -911,7 +918,7 @@ absl::Status GPUOperationFromNode(const GpuInfo& gpu_info,
     case OperationType::kFullyConnectedInt8: {
       const auto& attr = std::any_cast<const FullyConnectedInt8Attributes&>(
           node.operation.attributes);
-      if (inputs.size() >= 4) {
+      if (inputs.size() >= 3) {
         return MakeQuantizedFullyConnectedExternalWeights(
             gpu_info, create_info, op_def, OperationType::kFullyConnectedInt8,
             src_ids, dst_ids, model_builder, attr.weights.shape,
@@ -1483,7 +1490,7 @@ absl::Status GPUOperationFromNode(
     case OperationType::kFullyConnectedInt2: {
       const auto& attr =
           std::any_cast<const FullyConnectedInt2Attributes&>(node.attr);
-      if (inputs.size() >= 4) {
+      if (inputs.size() >= 3) {
         return MakeQuantizedFullyConnectedExternalWeights(
             gpu_info, create_info, op_def, OperationType::kFullyConnectedInt2,
             src_ids, dst_ids, model_builder,
@@ -1497,7 +1504,7 @@ absl::Status GPUOperationFromNode(
     case OperationType::kFullyConnectedInt4: {
       const auto& attr =
           std::any_cast<const FullyConnectedInt4Attributes&>(node.attr);
-      if (inputs.size() >= 4) {
+      if (inputs.size() >= 3) {
         return MakeQuantizedFullyConnectedExternalWeights(
             gpu_info, create_info, op_def, OperationType::kFullyConnectedInt4,
             src_ids, dst_ids, model_builder,
@@ -1511,7 +1518,7 @@ absl::Status GPUOperationFromNode(
     case OperationType::kFullyConnectedInt8: {
       const auto& attr =
           std::any_cast<const FullyConnectedInt8Attributes&>(node.attr);
-      if (inputs.size() >= 4) {
+      if (inputs.size() >= 3) {
         return MakeQuantizedFullyConnectedExternalWeights(
             gpu_info, create_info, op_def, OperationType::kFullyConnectedInt8,
             src_ids, dst_ids, model_builder, attr.weights.shape,

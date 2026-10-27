@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("//ml_drift/common:build_config.bzl", "mld_platform_alias")
 
 package(
@@ -120,6 +120,34 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:status_macros",
         "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "operation_selector_test",
+    srcs = ["operation_selector_test.cc"],
+    deps = [
+        ":operation_selector",
+        "//ml_drift/common:data_type",
+        "//ml_drift/common:gpu_info",
+        "//ml_drift/common:gpu_model",
+        "//ml_drift/common:gpu_model_util",
+        "//ml_drift/common:ir_model",
+        "//ml_drift/common:ir_model_util",
+        "//ml_drift/common:model",
+        "//ml_drift/common:operations",
+        "//ml_drift/common:precision",
+        "//ml_drift/common:shape",
+        "//ml_drift/common:tensor",
+        "//ml_drift/common/kernels:fully_connected",
+        "//ml_drift/common/task:gpu_operation",
+        "//ml_drift/common/task:tensor_desc",
+        "//ml_drift/common/task:weights_conversion",
+        "//ml_drift/common/task:weights_layout",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:status_macros",
+        "@com_google_absl//absl/status:status_matchers",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
