@@ -153,8 +153,9 @@ absl::Status GlInferenceContext::InitFromGpuModel(
 absl::Status GlInferenceContext::RestoreDeserialized(
     const absl::Span<const uint8_t> serialized_model,
     CreateGpuModelInfo* create_info) {
-  flatbuffers::Verifier verifier(serialized_model.data(),
-                                 serialized_model.size());
+  flatbuffers::Verifier verifier(
+      serialized_model.data(), serialized_model.size(),
+      ml_drift::GetInferenceContextVerifierOptions(serialized_model.size()));
   if (!data::VerifyInferenceContextBuffer(verifier)) {
     return absl::DataLossError("Deserialization failed.");
   }

@@ -194,6 +194,21 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "gl_inference_context_verifier_test",
+    srcs = ["gl_inference_context_verifier_test.cc"],
+    linkstatic = 1,
+    deps = [
+        ":gl_inference_context_cc_fbs",
+        "//ml_drift/common:gpu_model_cc_fbs",
+        "//ml_drift/common:types",
+        "//ml_drift/common/task:serialization_base",
+        "//ml_drift/common/task:serialization_base_cc_fbs",
+        "@com_google_googletest//:gtest_main",
+        "@flatbuffers//:runtime_cc",
+    ],
+)
+
 flatbuffer_cc_library(
     name = "gl_inference_context_cc_fbs",
     srcs = ["gl_inference_context.fbs"],

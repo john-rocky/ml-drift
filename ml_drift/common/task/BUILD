@@ -187,6 +187,23 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "serialization_base_test",
+    srcs = ["serialization_base_test.cc"],
+    linkstatic = 1,
+    deps = [
+        ":serialization_base",
+        ":serialization_base_cc_fbs",
+        "//ml_drift/cl:serialization_cc_fbs",
+        "//ml_drift/common:gpu_model_cc_fbs",
+        "//ml_drift/common:types",
+        "//ml_drift/metal:inference_context_cc_fbs",
+        "//ml_drift/webgpu:serialization_cc_fbs",
+        "@com_google_googletest//:gtest_main",
+        "@flatbuffers//:runtime_cc",
+    ],
+)
+
 flatbuffer_cc_library(
     name = "serialization_base_cc_fbs",
     srcs = ["serialization_base.fbs"],

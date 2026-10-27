@@ -293,8 +293,9 @@ absl::Status InferenceContext::RestoreDeserialized(
     const absl::Span<const uint8_t> serialized_model, Environment* env,
     const CreateGpuModelInfo* create_info) {
   gpu_info_ = env->device().GetInfo();
-  flatbuffers::Verifier verifier(serialized_model.data(),
-                                 serialized_model.size());
+  flatbuffers::Verifier verifier(
+      serialized_model.data(), serialized_model.size(),
+      ml_drift::GetInferenceContextVerifierOptions(serialized_model.size()));
   if (!data::VerifyInferenceContextBuffer(verifier)) {
     return absl::DataLossError("Deserialization failed.");
   }
@@ -930,8 +931,9 @@ InferenceContext::Encode(
 absl::Status GetInOutRefs(const absl::Span<const uint8_t> serialized_model,
                           std::vector<int64_t>* in_refs,
                           std::vector<int64_t>* out_refs) {
-  flatbuffers::Verifier verifier(serialized_model.data(),
-                                 serialized_model.size());
+  flatbuffers::Verifier verifier(
+      serialized_model.data(), serialized_model.size(),
+      ml_drift::GetInferenceContextVerifierOptions(serialized_model.size()));
   if (!data::VerifyInferenceContextBuffer(verifier)) {
     return absl::DataLossError("Deserialization failed.");
   }

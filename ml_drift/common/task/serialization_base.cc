@@ -14,7 +14,10 @@
 
 #include "ml_drift/common/task/serialization_base.h"
 
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <map>
 #include <memory>
 #include <string>
@@ -23,9 +26,11 @@
 
 #include "absl/status/status.h"
 #include "absl/status/status_macros.h"
+#include "flatbuffers/base.h"
 #include "flatbuffers/buffer.h"
 #include "flatbuffers/flatbuffer_builder.h"
 #include "flatbuffers/string.h"
+#include "flatbuffers/verifier.h"
 #include "ml_drift/common/access_type.h"
 #include "ml_drift/common/data_type.h"
 #include "ml_drift/common/shape.h"
@@ -751,6 +756,19 @@ Layout ToEnum(data::Layout type) {
     default:
       return Layout::kUnknown;
   }
+}
+
+flatbuffers::Verifier::Options GetInferenceContextVerifierOptions(
+    size_t size) {
+  flatbuffers::Verifier::Options options;
+  // Each table starts with a 4-byte vtable offset, so a buffer holds at most
+  // size / 4 tables. Capping visits there keeps the verifier linear in size.
+  const size_t max_tables =
+      std::min<size_t>(size / sizeof(flatbuffers::soffset_t),
+                       std::numeric_limits<flatbuffers::uoffset_t>::max());
+  options.max_tables = std::max<flatbuffers::uoffset_t>(
+      options.max_tables, static_cast<flatbuffers::uoffset_t>(max_tables));
+  return options;
 }
 
 }  // namespace ml_drift

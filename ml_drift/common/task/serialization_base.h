@@ -15,9 +15,12 @@
 #ifndef ML_DRIFT_COMMON_TASK_SERIALIZATION_BASE_H_
 #define ML_DRIFT_COMMON_TASK_SERIALIZATION_BASE_H_
 
+#include <cstddef>
+
 #include "absl/status/status.h"
 #include "flatbuffers/buffer.h"
 #include "flatbuffers/flatbuffer_builder.h"
+#include "flatbuffers/verifier.h"
 #include "ml_drift/common/data_type.h"
 #include "ml_drift/common/shape.h"
 #include "ml_drift/common/task/gpu_operation.h"
@@ -45,6 +48,10 @@ absl::Status Decode(const data::GPUOperation* fb_op, GPUOperation* op);
 DataType ToEnum(data::DataType type);
 TensorStorageType ToEnum(data::TensorStorageType type);
 Layout ToEnum(data::Layout type);
+
+// Verifier options for an inference context of `size` bytes: the table limit
+// grows with the size, as large graphs exceed the default of 1,000,000.
+flatbuffers::Verifier::Options GetInferenceContextVerifierOptions(size_t size);
 
 }  // namespace ml_drift
 
